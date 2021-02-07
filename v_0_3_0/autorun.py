@@ -78,18 +78,18 @@ def send_message(title, body=None):
     return result
 
 
-def find_inp() -> list:
+def find_inp() -> (str, str, str):
     """ find this directory inp file
     @Author: Mengsen Wang
     @Last Modified time: 2021-02-05 09:59:20
     """
-    job_list = []
     os_walk = os.walk(os.getcwd())
     for path, _dir_list, file_list in os_walk:
         for file_name in file_list:
             if file_name.split(".")[-1] == "inp":
-                jon_list.append((path, os.path.join(path, file_name), file_name, file_name[0:-4]))
-    return jon_list
+                return (path, os.path.join(path, file_name), file_name, file_name[0:-4])
+    send_message("find_inp()", "NoFileExistsError")
+    return (None, None, None, None)
 
 
 def cmd_exec(abs_path):
@@ -132,19 +132,18 @@ def main():
     @Author: Mengsen Wang
     @Last Modified time: 2021-02-05 10:08:49
     """
-    for abs_path, abs_file_path, main_file_name, job_name in find_inp():
-        print(abs_path, abs_file_path, main_file_name, job_name)
-        send_message("{} begin".format(job_name))
-        write_py(main_file_name, abs_path)
-        print("write temp py")
-        cmd_exec(abs_path)
-        clean(abs_path)
-        send_message("{} finish".format(job_name))
+    abs_path, abs_file_path, main_file_name, job_name = find_inp()
+    print(abs_path, abs_file_path, main_file_name, job_name)
+    send_message("{} begin".format(job_name))
+    write_py(main_file_name, abs_path)
+    print("write temp py")
+    cmd_exec(abs_path)
+    clean(abs_path)
+    send_message("{} finish".format(job_name))
 
 
 if __name__ == "__main__":
     main()
-
 
 # send_message("hello world", "Hello server")
 # os.system('mkdir {}'.format(main_name))
