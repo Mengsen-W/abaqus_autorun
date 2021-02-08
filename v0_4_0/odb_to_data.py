@@ -4,12 +4,8 @@
 @Last Modified time: 2021-02-05 09:55:57
 """
 import os
-from concurrent.futures import ThreadPoolExecutor, as_completed
-
-# import threading
-import psutil
 import requests
-
+import psutil
 
 META_STR = """
 import job
@@ -20,13 +16,6 @@ from abaqusConstants import *
 from abaqus import *
 
 input_file = '{}'
-parall_num = {}
-
-job_name = input_file[0:-4]
-mdb.JobFromInputFile(name=job_name, inputFileName=input_file,
-                     numCpus=parall_num, numDomains=parall_num)
-mdb.jobs[job_name].submit()
-mdb.jobs[job_name].waitForCompletion()
 
 odb_name = '{{}}.odb'.format(job_name)
 step_name = 'Step-2'
@@ -91,9 +80,10 @@ def find_inp() -> list:
     os_walk = os.walk(os.getcwd())
     for path, _dir_list, file_list in os_walk:
         for file_name in file_list:
-            if file_name.split(".")[-1] == "inp":
+            if file_name.split(".")[-1] == "odb":
                 job_list.append(
-                    (path, os.path.join(path, file_name), file_name, file_name[0:-4])
+                    (path, os.path.join(path, file_name),
+                     file_name, file_name[0:-4])
                 )
     return job_list
 
@@ -118,7 +108,8 @@ def write_py(main_file_name, abs_path):
     @Last Modified time: 2021-02-05 10:01:40
     """
     with open("{}\\temp.py".format(abs_path), "w") as temp_python:
-        temp_python.write(META_STR.format(main_file_name, psutil.cpu_count(False)))
+        temp_python.write(META_STR.format(
+            main_file_name, psutil.cpu_count(False)))
 
 
 def clean(abs_path):
@@ -132,39 +123,23 @@ def clean(abs_path):
         send_message("clean error", "OSError")
 
 
-def do_job(job_tuple):
-    """main do job
-    @Author: Mengsen Wang
-    @Last Modified time: 2021-02-08 12:32:16
-    """
-    abs_path, abs_file_path, main_file_name, job_name = job_tuple
-    print(abs_path, abs_file_path, main_file_name, job_name)
-    write_py(main_file_name, abs_path)
-    send_message("{}--begin".format(job_name), abs_path)
-    cmd_exec(abs_path)
-    clean(abs_path)
-    send_message("{}--finish".format(job_name), abs_path)
-    return 0
-
-
 def main():
     """main entry
     @Author: Mengsen Wang
-    @Last Modified time: 2021-02-08 12:33:25
+    @Last Modified time: 2021-02-05 10:08:49
     """
-    with ThreadPoolExecutor(psutil.cpu_count(False) / 4) as executor:
-        future_list = [executor.submit(do_job, job_tuple) for job_tuple in find_inp()]
-
-    for future in as_completed(future_list):
-        _result = future.result()
+    for abs_path, abs_file_path, main_file_name, job_name in find_inp():
+        print(abs_path, abs_file_path, main_file_name, job_name)
+        write_py(main_file_name, abs_path)
+        send_message("{} is beginning".format(job_name), abs_path)
+        cmd_exec(abs_path)
+        clean(abs_path)
+        send_message("{} is finished".format(job_name), abs_path)
 
 
 if __name__ == "__main__":
     main()
 
-# TODO
-# 1. add logger
-# 2. add class and function
 
 # send_message("hello world", "Hello server")
 # os.system('mkdir {}'.format(main_name))

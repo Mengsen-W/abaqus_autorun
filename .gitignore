@@ -1,6 +1,9 @@
 # vscode
 .vscode
 .history
+build
+dist
+__pycache__
 
 # Prerequisites
 *.d
