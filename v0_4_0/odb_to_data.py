@@ -17,6 +17,7 @@ from abaqus import *
 
 input_file = '{}'
 
+job_name = input_file[0:-4]
 odb_name = '{{}}.odb'.format(job_name)
 step_name = 'Step-2'
 set_name = 'RP-1'
@@ -109,7 +110,7 @@ def write_py(main_file_name, abs_path):
     """
     with open("{}\\temp.py".format(abs_path), "w") as temp_python:
         temp_python.write(META_STR.format(
-            main_file_name, psutil.cpu_count(False)))
+            main_file_name))
 
 
 def clean(abs_path):
@@ -131,10 +132,8 @@ def main():
     for abs_path, abs_file_path, main_file_name, job_name in find_inp():
         print(abs_path, abs_file_path, main_file_name, job_name)
         write_py(main_file_name, abs_path)
-        send_message("{} is beginning".format(job_name), abs_path)
         cmd_exec(abs_path)
         clean(abs_path)
-        send_message("{} is finished".format(job_name), abs_path)
 
 
 if __name__ == "__main__":

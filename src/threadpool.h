@@ -23,7 +23,7 @@ class ThreadPool {
   ThreadPool(size_t);
   template <class F, class... Args>
   auto enqueue(F&& f, Args&&... args)
-      -> std::future<typename std::result_of<F(Args...)>::type>;
+      -> std::future<typename std::invoke_result<F(Args...)>::type>;
   ~ThreadPool();
 
  private:
@@ -39,7 +39,7 @@ class ThreadPool {
 };
 
 // the constructor just launches some amount of workers
-ThreadPool::ThreadPool(size_t threads) : stop(false) {
+ThreadPool::ThreadPool(size_t threads) : workers(), stop(false) {
   for (size_t i = 0; i < threads; ++i)
     workers.emplace_back([this] {
       for (;;) {
@@ -62,10 +62,10 @@ ThreadPool::ThreadPool(size_t threads) : stop(false) {
 }
 
 // add new work item to the pool
-template <class F, class... Args>
+template <typename F, typename... Args>
 auto ThreadPool::enqueue(F&& f, Args&&... args)
-    -> std::future<typename std::result_of<F(Args...)>::type> {
-  using return_type = typename std::result_of<F(Args...)>::type;
+    -> std::future<typename std::invoke_result<F(Args...)>::type> {
+  using return_type = typename std::invoke_result<F(Args...)>::type;
 
   auto task = std::make_shared<std::packaged_task<return_type()> >(
       std::bind(std::forward<F>(f), std::forward<Args>(args)...));

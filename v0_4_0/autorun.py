@@ -93,7 +93,8 @@ def find_inp() -> list:
         for file_name in file_list:
             if file_name.split(".")[-1] == "inp":
                 job_list.append(
-                    (path, os.path.join(path, file_name), file_name, file_name[0:-4])
+                    (path, os.path.join(path, file_name),
+                     file_name, file_name[0:-4])
                 )
     return job_list
 
@@ -118,7 +119,8 @@ def write_py(main_file_name, abs_path):
     @Last Modified time: 2021-02-05 10:01:40
     """
     with open("{}\\temp.py".format(abs_path), "w") as temp_python:
-        temp_python.write(META_STR.format(main_file_name, psutil.cpu_count(False)))
+        temp_python.write(META_STR.format(
+            main_file_name, psutil.cpu_count(False)))
 
 
 def clean(abs_path):
@@ -153,7 +155,8 @@ def main():
     @Last Modified time: 2021-02-08 12:33:25
     """
     with ThreadPoolExecutor(psutil.cpu_count(False) / 4) as executor:
-        future_list = [executor.submit(do_job, job_tuple) for job_tuple in find_inp()]
+        future_list = [executor.submit(do_job, job_tuple)
+                       for job_tuple in find_inp()]
 
     for future in as_completed(future_list):
         _result = future.result()
